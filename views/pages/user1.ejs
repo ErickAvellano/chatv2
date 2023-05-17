@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat App</title>
+    <link rel="stylesheet" type="text/css" href="/css/usertry.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/malihu-custom-scrollbar-plugin/3.1.5/jquery.mCustomScrollbar.min.css">
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/malihu-custom-scrollbar-plugin/3.1.5/jquery.mCustomScrollbar.min.js"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js"></script>
+    <script src="<%= socketURL %>socket.io/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-1.10.1.min.js"></script>
+</head>
+<body>
+    <div class="container-fluid h-100">
+        <div class="row justify-content-center h-100">
+            <div class="col-md-8 col-xl-6 chat">
+                <div class="card">
+                    <div class="card-header msg_head">
+                        <div class="d-flex bd-highlight">
+                            <div class="img_cont">
+                                <img src="/images/Logo.jpg" class="rounded-circle user_img">
+                                <span class="online_icon"></span>
+                            </div>
+                            <div class="user_info">
+                                <span>IT114 FINAL PROJECT GROUP 4 GC &nbsp; &nbsp; &nbsp;</span>
+                                <p>0 Messages</p>
+                            </div>
+                            <div class="video_cam">
+                                <span><i class="fas fa-video"></i></span>
+                                <span><i class="fas fa-phone"></i></span>
+                            </div>
+                        </div>
+                        <span id="action_menu_btn"><i class="fas fa-ellipsis-v"></i></span>
+                        <div class="action_menu">
+                            <ul>
+                                <li><i class="fas fa-user-circle"></i> View Member</li>
+                                <li><i class="fas fa-users"></i> Add to close friends</li>
+                                <li><i class="fas fa-plus"></i> Add to group</li>
+                                <li><i class="fas fa-ban"></i> Leave Group</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="card-body msg_card_body">
+                        <div id="create">
+                        </div>
+                        <div class="d-flex justify-content-start mb-4">
+                        </div>
+                        <div id="chat-messages"></div>
+                        <div id="welcome-message"></div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="input-group">
+                            <div class="input-group-append">
+                                <span class="input-group-text attach_btn"><i class="fas fa-paperclip"></i></span>
+                            </div>
+                            <textarea name="" class="form-control type_msg" placeholder="Type your message..."></textarea>
+                            <div class="input-group-append">
+                                <button id="send-btn" class="input-group-text send_btn"><i class="fas fa-location-arrow"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+const socket = io.connect("<%= socketURL %>");
+const sendButton = document.querySelector(".send_btn");
+const messageInput = document.querySelector(".type_msg");
+const chatWindow = document.querySelector(".msg_card_body");
+const chatCount = document.querySelector(".user_info p");
+let messageCounter = 0;
+let currentUser = "user1"; // set the current user to user1 by default
+
+sendButton.addEventListener("click", () => {
+  const message = messageInput.value.trim();
+
+  if (message) {
+    const timestamp = new Date();
+    const data = {
+      text: message,
+      sender: currentUser,
+      recipient: currentUser === "user1" ? "usertry" : "user1", // set the recipient based on the current user
+      timestamp: timestamp,
+    };
+
+    // emit a message event to the server with the message data
+    socket.emit("message", data);
+    const messageContainer = document.createElement("div");
+    const messageText = document.createElement("span");
+    const messageTime = document.createElement("span");
+
+    messageText.textContent = message;
+    messageTime.textContent = timestamp.toLocaleTimeString();
+
+    messageContainer.appendChild(messageText);
+    messageContainer.appendChild(messageTime);
+
+    // Check if the message is from usertry to user1
+    if (data.sender === "usertry" && data.recipient === "user1") {
+      messageContainer.classList.add(
+        "d-flex",
+        "justify-content-start",
+        "mb-4"
+      );
+      messageText.classList.add("msg_cotainer");
+      messageTime.classList.add("msg_time");
+    } else {
+      messageContainer.classList.add(
+        "d-flex",
+        "justify-content-end",
+        "mb-4"
+      );
+      messageText.classList.add("msg_cotainer_send");
+      messageTime.classList.add("msg_time_send");
+    }
+    chatWindow.appendChild(messageContainer);
+    messageInput.value = "";
+    messageCounter++;
+    chatCount.textContent = `${messageCounter} Messages`;
+  }
+});
+
+// listen for incoming messages from the server
+socket.on("message", (data) => {
+  const messageContainer = document.createElement("div");
+  const messageText = document.createElement("span");
+  const messageTime = document.createElement("span");
+
+  messageText.textContent = data.text;
+  messageTime.textContent = new Date(data.timestamp).toLocaleTimeString();
+
+  messageContainer.appendChild(messageText);
+  messageContainer.appendChild(messageTime);
+
+  // Check if the message is from usertry to the current user
+  if (data.sender === "usertry" && data.recipient === currentUser) {
+    messageContainer.classList.add("d-flex", "justify-content-start", "mb-4");
+    messageText.classList.add("msg_cotainer");
+    messageTime.classList.add("msg_time");
+  } else {
+    messageContainer.classList.add("d-flex", "justify-content-end", "mb-4");
+    messageText.classList.add("msg_cotainer_send");
+    messageTime.classList.add("msg_time_send");
+  }
+
+  chatWindow.appendChild(messageContainer);
+  messageCounter++;
+  chatCount.textContent = `${messageCounter} Messages`;
+});
+const urlSearchParams = new URLSearchParams(window.location.search);
+const params = Object.fromEntries(urlSearchParams.entries());
+const username = params.username;
+if (username) {
+  var welcomeMessage = "<hr>" + username + " " +"joined the chat" + "<hr>";
+        var welcomeElement = document.getElementById("welcome-message");
+        welcomeElement.innerHTML = welcomeMessage;
+} else {
+  alert('Username parameter is missing from URL!');
+}
+</script>
+</html>

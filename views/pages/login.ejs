@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Slide Navbar</title>
+	<link rel="stylesheet" type="text/css" href="/css/login.css">
+	<script src="<%= socketURL %>socket.io/socket.io.js"></script>
+	<link href="https://fonts.googleapis.com/css2?family=Jost:wght@500&display=swap" rel="stylesheet">
+</head>
+<body>
+	<div class="main">  	
+		<input type="checkbox" id="chk" aria-hidden="true">
+
+			<div class="signup">
+				<form id="register-form">
+					<label for="username" aria-hidden="true">Sign up</label>
+					<input type="text" id="username" placeholder="Username" required="">
+					<input type="password" id="password" placeholder="Password" required="">
+					<button type="submit">Sign up</button>
+				</form>
+			</div>
+            
+			<div class="login">
+				<form id="login-form">
+					<label for="login-username" aria-hidden="true">Login</label>
+					<input type="text" id="login-username" placeholder="Username" required="">
+					<input type="password" id="login-password" placeholder="Password" required="">
+					<button type="submit">Login</button>
+				</form>
+			</div>
+	</div>
+</body>
+<script>
+	const registerForm = document.getElementById("register-form");
+    const loginForm = document.getElementById("login-form");
+
+    // function to handle registration form submission
+    registerForm.addEventListener("submit", (e) => {
+      e.preventDefault(); // prevent default form submission
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+      // save username and password in localStorage
+      localStorage.setItem(username, password);
+      alert("Registration successful. You can now login.");
+    });
+
+    // function to handle login form submission
+    loginForm.addEventListener("submit", (e) => {
+  e.preventDefault(); // prevent default form submission
+  const username = document.getElementById("login-username").value;
+  const password = document.getElementById("login-password").value;
+  // check if username and password match
+  const storedPassword = localStorage.getItem(username);
+  if (storedPassword !== null && storedPassword === password) {
+    alert("Login successful.");
+    window.location.replace("/usertry?username=" + encodeURIComponent(username)); // redirect to dashboard page
+  } else {
+    alert("Invalid username or password.");
+  }
+});
+
+</script>
+</html>
